@@ -1,46 +1,63 @@
-const { sign } = require('crypto');
-const { User } = require ('../models');
+const router = require('express').Router();
+const { User } = require('../../models');
 
-
-const userController = {
-    // Handler for creating a new user
-    async signup(req, res) {
-        try {
-            await User.create(req.body);
-
-
-            res.redirect('/login');
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Failed to create user' });  
-        }
-    },
-
-    // Handler for logging in a user   
-    async login(req, res) {
-        try {
-             // Perform user authentication
-      // ... (authenticate user credentials)
-
-      // Set the logged_in session variable
-        req.session.logged_in = true;
-        req.session.user_id = user.id;
-
-        // Redirect to the dashboard
-        req.redirect('/dashboard');
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Failed to login user' });
-        }
-    },
-
-     // Handler for the logout route
-  logout(req, res) {
-    // Destroy the session and redirect to the homepage
-    req.session.destroy(() => {
-      res.redirect('/');
+// Route for user signup
+router.post('/signup', async (req, res) => {
+  try {
+    // Create a new user with the provided data
+    const user = await User.create(req.body);
+    req.session.save(() => {
+      req.session.user_id = user.id;
+      req.session.logged_in = true;
+      res.status(200).json(user);
     });
-  },
-};
+  } catch (err) {
+    res.status(400).json(err);
+  }
+});
 
-module.exports = userController;
+// Route for user logout
+router.post('/logout', async (req, res) => {
+  if (req.session.logged_in) {
+    // Destroy the user session and log them out
+    req.session.destroy(() => {
+      res.status(204).end();
+    });
+  } else {
+    res.status(404).end();
+  }
+});
+
+// Route for user login
+router.post('/login', async (req, res) => {
+  try {
+    // Find the user with the provided email
+    const user = await User.findOne({ where: { email: req.body.email } });
+    if (!user) {
+      // If no user is found, return an error response
+      res.status(400).json({ message: 'Incorrect email or password, please try again' });
+      return;
+    }
+
+    // Check given password matches user's password
+    const validPassword = await user.checkPassword(req.body.password);
+
+    if (!validPassword) {
+      // If password is incorrect, return error response
+      res.status(400).json({ message: 'Incorrect email or password, please try again' });
+      return;
+    }
+
+    req.session.save(() => {
+      // Save user session and log in
+      req.session.user_id = user.id;
+      req.session.logged_in = true;
+      res.redirect('/api/posts');
+    });
+
+  } catch (err) {
+    res.status(400).json(err);
+  }
+});
+
+module.exports = router;
