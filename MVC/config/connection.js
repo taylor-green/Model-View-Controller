@@ -4,7 +4,6 @@ const Sequelize = require('sequelize');
 require('dotenv').config();
 
 let sequelize;
-// Check if the JAWSDB_URL environment variable is defined
 if (process.env.JAWSDB_URL) {
   sequelize = new Sequelize(process.env.JAWSDB_URL);
 } else {
@@ -14,19 +13,12 @@ if (process.env.JAWSDB_URL) {
     process.env.DB_USER,
     process.env.DB_PASSWORD,
     {
-      host: process.env.DB_HOST || 'localhost',
+      host: 'localhost',
       dialect: 'mysql',
-      port: process.env.DB_PORT || 3306,
-      dialectOptions: {
-        decimalNumbers: true,
-      },
-      define: {
-        timestamps: true,
-        underscored: true,
-        underscoredAll: true,
-      },
-    }
+      port: 3306,
+      }
   );
 }
+  
 // Export the created Sequelize instance for use in other modules
 module.exports = sequelize;
