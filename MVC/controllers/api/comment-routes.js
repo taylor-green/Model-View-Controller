@@ -1,19 +1,23 @@
-const { Comment, User } = require('../models');
+const router = require('express').Router();
+// Import Comment model from the '../../models' 
+const { Comment } = require('../../models');
 
-const commentController = {
-  // Handler for adding a comment to a blog post
-  async addComment(req, res) {
-    try {
-      // Create a new comment in the database
-      await Comment.create({ ...req.body, userId: req.session.userId });
+// Route for rendering the comment form
+router.get('/', async (req, res) => {
+  res.render('comment');
+});
 
-      // Redirect back to the blog post page
-      res.redirect(`/posts/${req.params.postId}`);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Failed to add comment' });
-    }
-  },
-};
+// Route to create new comment
+router.post('/', async (req, res) => {
+  try {
+    // Create new comment using data from request body
+    const comment = await Comment.create(req.body);
+    // Respond with created comment 
+    res.status(200).json(comment);
+  } catch (err) {
+    // Handle any errors that occur during comment creation
+    res.status(500).json(err);
+  }
+});
 
-module.exports = commentController;
+module.exports = router;
