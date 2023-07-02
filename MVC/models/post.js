@@ -37,18 +37,13 @@ Post.init(
     },
   },
   {
-    // Configure the model to use the sequelize connection instance
+   
     sequelize,
-    // Set the model name
     modelName: 'post',
-    // Automatically add timestamp fields (createdAt, updatedAt)
     timestamps: true,
-    // Use underscores instead of camel-casing for automatically added fields
     underscored: true,
-    // Make the model name lowercase in the database
     freezeTableName: true,
   }
 );
 
-// Export the Post model
 module.exports = Post;
