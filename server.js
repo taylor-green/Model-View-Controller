@@ -2,7 +2,8 @@ const path = require('path');
 const express = require('express');
 const session = require('express-session');
 const exphbs = require('express-handlebars');
-const routes = require('./routes');
+const routes = require('./controllers');
+const helpers = require('./utils/helpers');
 
 
 const sequelize = require('./config/connection');
@@ -11,13 +12,13 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Serve static files from the public directory
-app.use(express.static('public'));
+// Set up Handlebars.js engine with custom helpers
+const hbs = exphbs.create({ helpers });
 
 const sess = {
-  secret: 'Super secret secret',
+  secret: 'SideHustleSecret',
   cookie: {
-    maxAge: 100000,
+    maxAge: 10000000,
     httpOnly: true,
     secure: false,
     sameSite: 'strict',
@@ -29,42 +30,18 @@ const sess = {
   })
 };
 
-
-// Set up session middleware
 app.use(session(sess));
 
 // Inform Express.js on which template engine to use
-// Set the view engine
-app.engine('handlebars', exphbs({
-  defaultLayout: 'main',
-  layoutsDir: path.join(__dirname, 'views/layouts'),
-  partialsDir: path.join(__dirname, 'views/partials'),
-  extname: 'handlebars',
-}));
+app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 
-// Define a route handler for "/login"
-app.get('/login', (req, res) => {
-  res.render('loginForm'); 
-});
-
-// Define a route handler for "/signup"
-app.get('/signup', (req, res) => {
-  res.render('signupForm'); 
-});
-
-
-// Set up static file serving and body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Set up routes
 app.use(routes);
 
-// Start the server
 sequelize.sync({ force: false }).then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server listening on PORT ${PORT}`);
-  });
+  app.listen(PORT, () => console.log('Now listening'));
 });
