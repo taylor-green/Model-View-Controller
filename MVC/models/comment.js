@@ -1,58 +1,33 @@
-// Import the Sequelize library
-const { Model, DataTypes } = require('sequelize');
-// Import the connection instance
-const sequelize = require('../config/connection');
+const User = require('./User');
+const Post = require('./Post');
+const Comment = require('./Comment');
 
-// Create the Comment model by extending the Sequelize Model class
-class Comment extends Model {}
+User.hasMany(Post, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE',
+});
 
-// Define the Comment model fields and configuration
-Comment.init(
-  {
-    // Define the id field as an integer primary key that auto-increments
-    id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    // Define the commentText field as a string
-    commentText: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    // Define the userId field as an integer and set it as a foreign key referencing the User model
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'user',
-        key: 'id',
-      },
-    },
-    // Define the postId field as an integer and set it as a foreign key referencing the Post model
-    postId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'post',
-        key: 'id',
-      },
-    },
-  },
-  {
-    // Configure the model to use the sequelize connection instance
-    sequelize,
-    // Set the model name
-    modelName: 'comment',
-    // Automatically add timestamp fields (createdAt, updatedAt)
-    timestamps: true,
-    // Use underscores instead of camel-casing for automatically added fields
-    underscored: true,
-    // Make the model name lowercase in the database
-    freezeTableName: true,
-  }
-);
+User.hasMany(Comment, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE',
+});
 
-// Export the Comment model
-module.exports = Comment;
+Post.belongsTo(User, {
+  foreignKey: 'userId',
+});
+
+Post.hasMany(Comment, {
+  foreignKey: 'postId',
+  onDelete: 'CASCADE',
+});
+
+Comment.belongsTo(User, {
+  foreignKey: 'userId',
+});
+
+Comment.belongsTo(Post, {
+  foreignKey: 'postId',
+});
+
+// Export the models
+module.exports = { User, Post, Comment };
